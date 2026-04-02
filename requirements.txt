@@ -1,0 +1,11 @@
+streamlit
+yfinance
+pandas
+numpy
+scikit-learn
+joblib
+notebook
+matplotlib
+seaborn
+plotly
+-e .
