@@ -122,15 +122,30 @@ def fetch_ai_stock_news(
 
     logger.info("Asking Ollama for top %s news for %s", limit, stock_name)
 
+    import yfinance as yf
+    try:
+        raw_news = yf.Ticker(ticker).news
+        context_lines = []
+        for n in raw_news[:limit]:
+            title = n.get("title", "")
+            link = n.get("link", "")
+            pub = n.get("publisher", "Unknown")
+            if title and link:
+                context_lines.append(f"Title: {title} | Source: {pub} | URL: {link}")
+        news_context = "\n".join(context_lines)
+    except Exception as e:
+        logger.warning(f"Failed to fetch yfinance news context: {e}")
+        news_context = "No real-time news data available. Do your best to predict based on recent historical knowledge."
+
     prompt = (
         f"You are a financial analyst with deep knowledge of Indian stock markets. "
-        f"Generate the top {limit} latest and most important stock news headlines for {stock_name} "
-        f"(NSE India listed company). "
-        f"For each news item provide: a realistic headline title, publication date in DD-Mon-YY format, "
-        f"source name (Reuters, Economic Times, Moneycontrol, Business Standard, Livemint, Bloomberg), "
-        f"a real and plausible source URL, "
-        f"and one sentence explaining why it matters for the stock price or investors. "
-        f"Also write a short overall AI summary paragraph and 4-5 short actionable investor next steps. "
+        f"Analyze the following FACTUAL latest news headlines and URLs for {stock_name} (NSE India listed):\n\n"
+        f"{news_context}\n\n"
+        f"Using ONLY the headlines and exact URLs provided above, return a JSON response containing up to {limit} highlights. "
+        f"For each news item provide: 'title' (exactly as provided), 'published_at' (DD-Mon-YY), "
+        f"'source' (exactly as provided), 'url' (exactly as provided without altering it), "
+        f"and ONE sentence explaining 'why_it_matters' for the stock price or investors. "
+        f"Also write a short overall 'summary' paragraph and 4-5 short actionable 'next_steps'. "
         f"Return JSON only in this exact format with no extra text: "
         f'{{\"summary\":\"...\",\"next_steps\":[\"...\",\"...\"],'
         f'\"highlights\":[{{\"title\":\"...\",\"published_at\":\"...\",\"source\":\"...\",\"url\":\"...\",\"why_it_matters\":\"...\"}}]}}'
