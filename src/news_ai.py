@@ -129,9 +129,14 @@ def fetch_ai_stock_news(
         for item in raw_news[:limit]:
             content = item.get("content", {})
             if content:
-                title = content.get("title", "")
-                pub = content.get("provider", {}).get("displayName", "Unknown")
-                link = content.get("clickThroughUrl", {}).get("url", "")
+                title = content.get("title") or ""
+                
+                provider = content.get("provider") or {}
+                pub = provider.get("displayName", "Unknown") if isinstance(provider, dict) else "Unknown"
+                
+                click_thru = content.get("clickThroughUrl") or {}
+                link = click_thru.get("url", "") if isinstance(click_thru, dict) else ""
+
                 if title and link:
                     context_lines.append(f"Title: {title} | Source: {pub} | URL: {link}")
 
