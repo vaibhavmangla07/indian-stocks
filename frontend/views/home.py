@@ -1,7 +1,5 @@
 import streamlit as st
-
 from backend.data_manager import fetch_indices, fetch_data, predict_horizons, POPULAR_STOCKS
-
 
 def render_home():
     st.markdown("<h3 style='text-align: center;'>📊 Market Overview</h3>", unsafe_allow_html=True)

@@ -9,11 +9,9 @@ from src.logger import logging
 from src.config import (
     CACHE_TTL_MARKET_DATA,
     CACHE_TTL_FUNDAMENTALS,
-    CACHE_TTL_SHAREHOLDING,
     LONG_TERM_MODEL_PATH,
     ML_MIN_DATA_POINTS,
     POPULAR_STOCKS,
-    SHAREHOLDING_PATTERN,
     SHORT_TERM_MODEL_PATH,
 )
 
@@ -165,11 +163,29 @@ def fetch_stock_fundamentals(ticker):
 
         pe_ratio = info.get("trailingPE")
         pe_ratio = pe_ratio if pe_ratio is not None else info.get("forwardPE")
+        eps_ttm = info.get("epsTrailingTwelveMonths")
 
         current_price = info.get("currentPrice") or fast_info.get("last_price")
+        previous_close = info.get("previousClose") or fast_info.get("previous_close")
+        open_price = info.get("open") or fast_info.get("open")
+        day_low = info.get("dayLow") or fast_info.get("day_low")
+        day_high = info.get("dayHigh") or fast_info.get("day_high")
+        week_52_low = info.get("fiftyTwoWeekLow") or fast_info.get("year_low")
+        week_52_high = info.get("fiftyTwoWeekHigh") or fast_info.get("year_high")
+        beta = info.get("beta")
+        volume = info.get("volume") or fast_info.get("last_volume")
+        avg_volume = info.get("averageVolume") or fast_info.get("ten_day_average_volume") or fast_info.get("three_month_average_volume")
+        dividend_rate = info.get("dividendRate")
+        ex_dividend_date = info.get("exDividendDate")
+        target_mean_price = info.get("targetMeanPrice")
+        full_time_employees = info.get("fullTimeEmployees")
+        website = info.get("website")
+        long_business_summary = info.get("longBusinessSummary") or info.get("summary")
+        industry = info.get("industry") or info.get("industryDisp")
+        fiscal_year_end = info.get("fiscalYearEnd")
+        company_name = info.get("longName") or info.get("shortName") or ticker.replace(".NS", "").replace(".BO", "")
 
         if pe_ratio is None:
-            eps_ttm = info.get("epsTrailingTwelveMonths")
             if isinstance(current_price, (int, float)) and isinstance(eps_ttm, (int, float)) and eps_ttm != 0:
                 pe_ratio = current_price / eps_ttm
 
@@ -202,26 +218,34 @@ def fetch_stock_fundamentals(ticker):
         sector = info.get("sector") or info.get("industryDisp") or info.get("industry") or "N/A"
 
         return {
+            "previous_close": previous_close,
+            "open_price": open_price,
+            "day_low": day_low,
+            "day_high": day_high,
+            "week_52_low": week_52_low,
+            "week_52_high": week_52_high,
+            "beta": beta,
+            "volume": volume,
+            "avg_volume": avg_volume,
             "pe_ratio": round(pe_ratio, 2) if isinstance(pe_ratio, (int, float)) else "N/A",
+            "eps_ttm": round(eps_ttm, 2) if isinstance(eps_ttm, (int, float)) else "N/A",
+            "dividend_rate": round(dividend_rate, 2) if isinstance(dividend_rate, (int, float)) else "N/A",
             "book_value": round(book_value, 2) if isinstance(book_value, (int, float)) else "N/A",
             "year_return": round(year_return, 2) if year_return is not None else "N/A",
             "sector": sector,
             "market_cap": _format_market_cap_cr(market_cap),
             "dividend_yield": dividend_yield,
+            "ex_dividend_date": pd.to_datetime(ex_dividend_date, unit="s", errors="coerce") if ex_dividend_date else None,
+            "target_mean_price": round(target_mean_price, 2) if isinstance(target_mean_price, (int, float)) else "N/A",
+            "full_time_employees": int(full_time_employees) if isinstance(full_time_employees, (int, float)) else "N/A",
+            "website": website or "N/A",
+            "business_summary": long_business_summary or "N/A",
+            "industry": industry or "N/A",
+            "fiscal_year_end": fiscal_year_end or "N/A",
+            "company_name": company_name or ticker,
         }
     except Exception:
         logging.warning("Failed to fetch fundamentals for %s", ticker)
         return None
 
 
-@st.cache_data(ttl=CACHE_TTL_SHAREHOLDING)
-def fetch_shareholding_pattern(ticker):
-    """Return mock shareholding data used by the UI."""
-    logging.info("Fetching shareholding pattern for %s", ticker)
-    shareholding = SHAREHOLDING_PATTERN.copy()
-    quarter_info = {
-        "quarter": "Q4 FY2026",
-        "date": "31-Mar-2026",
-        "arrow": "↑ Updated",
-    }
-    return shareholding, quarter_info

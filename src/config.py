@@ -1,10 +1,5 @@
-"""
-Configuration constants and settings for Stocksy application.
-Centralized configuration management for the entire application.
-"""
-
 import os
-from typing import List, Dict
+from typing import List
 
 # Application Settings
 APP_NAME = "Stocksy"
@@ -30,7 +25,6 @@ STREAMLIT_THEME = "light"
 # Data Fetching Configuration
 CACHE_TTL_MARKET_DATA = 300  # 5 minutes
 CACHE_TTL_FUNDAMENTALS = 3600  # 1 hour
-CACHE_TTL_SHAREHOLDING = 86400  # 24 hours
 
 # Market Data Configuration
 INDICES = {
@@ -44,7 +38,7 @@ POPULAR_STOCKS: List[str] = [
     "RELIANCE", "TCS", "HDFCBANK", "ICICIBANK", "BHARTIARTL", 
     "SBIN", "INFY", "LICI", "ITC", "HINDUNILVR", "LT", "BAJFINANCE", 
     "HCLTECH", "MARUTI", "SUNPHARMA", "ADANIENT", "KOTAKBANK", 
-    "TITAN", "ONGC", "TATAMOTORS", "NTPC", "AXISBANK", "DMART", 
+    "TITAN", "ONGC", "JTLIND", "NTPC", "AXISBANK", "DMART", 
     "ADANIPORTS", "ULTRACEMCO", "ASIANPAINT", "COALINDIA", 
     "BAJAJFINSV", "BAJAJ-AUTO", "POWERGRID", "NESTLEIND", "WIPRO", 
     "M&M", "IOC", "JIOFIN", "HAL", "DLF", "ADANIGREEN", "TATASTEEL", 
@@ -71,16 +65,6 @@ DEFAULT_PERIOD = "1y"
 # News Configuration
 NEWS_LIMIT = 10  # Default number of news articles to fetch
 NEWS_SOURCES_TIMEOUT = 10  # Timeout for news API calls
-
-# Shareholding Pattern (Mock Data)
-SHAREHOLDING_PATTERN: Dict[str, float] = {
-    "Promoters": 45.2,
-    "FIIs": 18.5,
-    "Retail": 12.3,
-    "Mutual Funds": 14.8,
-    "Insurance Companies": 5.2,
-    "Other DIIs": 4.0,
-}
 
 # Display Formats
 CURRENCY_FORMAT = "₹"

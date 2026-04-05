@@ -1,6 +1,5 @@
 import streamlit as st
-
-from backend.data_manager import fetch_shareholding_pattern, fetch_stock_fundamentals, POPULAR_STOCKS
+from backend.data_manager import fetch_stock_fundamentals, POPULAR_STOCKS
 
 
 def _format_decimal(value, digits=2):
@@ -44,42 +43,6 @@ def _format_market_cap_display(value):
 def render_stock_detail():
     st.markdown("<h2 style='text-align: center;'>🏢 Stock Detail</h2>", unsafe_allow_html=True)
 
-    st.markdown(
-        """
-    <style>
-        .detail-banner {
-            background: linear-gradient(90deg, rgba(16, 185, 129, 0.22), rgba(34, 197, 94, 0.12));
-            border: 1px solid rgba(74, 222, 128, 0.35);
-            border-radius: 14px;
-            padding: 12px 16px;
-            font-weight: 700;
-            margin-bottom: 14px;
-            color: #4ade80;
-        }
-        .detail-card {
-            background: linear-gradient(180deg, rgba(148, 163, 184, 0.08), rgba(30, 41, 59, 0.14));
-            border: 1px solid rgba(148, 163, 184, 0.18);
-            border-radius: 14px;
-            padding: 14px 16px;
-            min-height: 96px;
-        }
-        .detail-label {
-            font-size: 0.95rem;
-            color: #a7b0bf;
-            margin-bottom: 6px;
-        }
-        .detail-value {
-            font-size: 2.1rem;
-            font-weight: 700;
-            color: #f3f4f6;
-            line-height: 1.1;
-            letter-spacing: -0.3px;
-        }
-    </style>
-    """,
-        unsafe_allow_html=True,
-    )
-
     selected_stock = st.selectbox("Select stock", options=[""] + POPULAR_STOCKS, index=0, key="stock_detail_select")
     chosen_stock = selected_stock.strip().upper()
 
@@ -91,86 +54,57 @@ def render_stock_detail():
 
         with st.spinner(f"Fetching details for {ticker}..."):
             fundamentals = fetch_stock_fundamentals(ticker)
-            shareholding, quarter_info = fetch_shareholding_pattern(ticker)
 
         if fundamentals:
-            pe_display = _format_decimal(fundamentals.get("pe_ratio"))
-            book_display = _format_decimal(fundamentals.get("book_value"))
-            year_return_display = _format_percent(fundamentals.get("year_return"))
-            dividend_display = _format_percent(fundamentals.get("dividend_yield"))
-            market_cap_display = _format_market_cap_display(fundamentals.get("market_cap"))
-            sector_display = str(fundamentals.get("sector") or "N/A")
+            company_name = str(fundamentals.get("company_name") or ticker)
+            summary_display = fundamentals.get("business_summary") or "N/A"
 
-            st.markdown(f"<div class='detail-banner'>{ticker} Fundamentals</div>", unsafe_allow_html=True)
+            st.subheader(company_name)
 
-            metric_cols = st.columns(2)
-            with metric_cols[0]:
-                st.markdown(
-                    f"<div class='detail-card'><div class='detail-label'>PE Ratio</div><div class='detail-value'>{pe_display}</div></div>",
-                    unsafe_allow_html=True,
-                )
-            with metric_cols[1]:
-                st.markdown(
-                    f"<div class='detail-card'><div class='detail-label'>Book Value</div><div class='detail-value'>{book_display}</div></div>",
-                    unsafe_allow_html=True,
-                )
+            snapshot_labels = [
+                ("Previous Close", fundamentals.get("previous_close")),
+                ("Open", fundamentals.get("open_price")),
+                ("Day's Range", f"{_format_decimal(fundamentals.get('day_low'))} - {_format_decimal(fundamentals.get('day_high'))}"),
+                ("52 Week Range", f"{_format_decimal(fundamentals.get('week_52_low'))} - {_format_decimal(fundamentals.get('week_52_high'))}"),
+                ("Market Cap", fundamentals.get("market_cap")),
+                ("Beta", fundamentals.get("beta")),
+                ("Volume", fundamentals.get("volume")),
+                ("Avg. Volume", fundamentals.get("avg_volume")),
+            ]
 
-            metric_cols2 = st.columns(4)
-            with metric_cols2[0]:
-                st.markdown(
-                    f"<div class='detail-card'><div class='detail-label'>1-Year Return</div><div class='detail-value'>{year_return_display}</div></div>",
-                    unsafe_allow_html=True,
-                )
-            with metric_cols2[1]:
-                st.markdown(
-                    f"<div class='detail-card'><div class='detail-label'>Sector</div><div class='detail-value'>{sector_display}</div></div>",
-                    unsafe_allow_html=True,
-                )
-            with metric_cols2[2]:
-                st.markdown(
-                    f"<div class='detail-card'><div class='detail-label'>Dividend Yield</div><div class='detail-value'>{dividend_display}</div></div>",
-                    unsafe_allow_html=True,
-                )
-            with metric_cols2[3]:
-                st.markdown(
-                    f"<div class='detail-card'><div class='detail-label'>Market Cap</div><div class='detail-value'>{market_cap_display}</div></div>",
-                    unsafe_allow_html=True,
-                )
+            for start in range(0, len(snapshot_labels), 4):
+                row = snapshot_labels[start : start + 4]
+                cols = st.columns(len(row))
+                for col, (label, value) in zip(cols, row):
+                    with col:
+                        st.metric(label, _format_market_cap_display(value) if label == "Market Cap" else _format_decimal(value) if label in {"Beta"} else _format_indian_number(value) if label in {"Volume", "Avg. Volume"} and isinstance(value, (int, float)) else str(value))
 
             st.divider()
 
-            if shareholding:
-                st.markdown(f"### 📊 Shareholding Pattern {quarter_info['arrow']}")
-                st.caption(f"Q: {quarter_info['quarter']} | Date: {quarter_info['date']}")
+            st.markdown("### About")
+            st.write(summary_display)
 
-                import plotly.graph_objects as go
+            about_cols = st.columns(2)
+            with about_cols[0]:
+                st.write(f"**Website:** {fundamentals.get('website') or 'N/A'}")
+                st.write(f"**Industry:** {fundamentals.get('industry') or 'N/A'}")
+            with about_cols[1]:
+                st.write(f"**Employees:** {fundamentals.get('full_time_employees') or 'N/A'}")
+                st.write(f"**Fiscal Year End:** {fundamentals.get('fiscal_year_end') or 'N/A'}")
 
-                labels = list(shareholding.keys())
-                values = list(shareholding.values())
+            st.divider()
 
-                fig = go.Figure(
-                    data=[
-                        go.Pie(
-                            labels=labels,
-                            values=values,
-                            hovertemplate="<b>%{label}</b><br>%{value}%<extra></extra>",
-                            marker=dict(
-                                colors=[
-                                    "#1f77b4",
-                                    "#ff7f0e",
-                                    "#2ca02c",
-                                    "#d62728",
-                                    "#9467bd",
-                                    "#8c564b",
-                                ]
-                            ),
-                        )
-                    ]
-                )
-
-                fig.update_layout(title="", height=500, showlegend=True)
-                st.plotly_chart(fig, use_container_width=True)
-                st.info("Shareholding data is for reference. For latest accurate data, refer to official stock exchange or company filings.")
+            st.markdown("### Details")
+            detail_cols = st.columns(4)
+            detail_values = [
+                ("PE Ratio", fundamentals.get("pe_ratio")),
+                ("Book Value", fundamentals.get("book_value")),
+                ("1-Year Return", fundamentals.get("year_return")),
+                ("Dividend Yield", fundamentals.get("dividend_yield")),
+            ]
+            for column, (label, value) in zip(detail_cols, detail_values):
+                with column:
+                    st.metric(label, _format_percent(value) if label in {"1-Year Return", "Dividend Yield"} else _format_decimal(value))
         else:
             st.error(f"Could not fetch fundamentals for {ticker}. Ensure it is a valid ticker.")
     else:
