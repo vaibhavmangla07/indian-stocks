@@ -40,7 +40,11 @@ def render_stock_news():
         status.update(label="Analysis complete!", state="complete", expanded=False)
 
     if not news_items:
-        st.warning(f"No recent news found for **{stock}**. Try another ticker.")
+        if ai_summary and "Ollama connection" in ai_summary:
+            st.error(f"🔌 **AI Connection Failed:** {ai_summary}")
+            st.info("💡 **Why is this happening?** You are viewing this app on a cloud server (like Streamlit Community Cloud) which does not have Ollama installed. The AI News Intelligence feature runs completely locally on your hardware for privacy, so it expects Ollama to be running on localhost:11434. To see this feature in action, run the app on your local computer!")
+        else:
+            st.warning(f"No recent news found for **{stock}**. Try another ticker.")
         return
 
     stock_display = ticker.replace(".NS", "").replace(".BO", "")
