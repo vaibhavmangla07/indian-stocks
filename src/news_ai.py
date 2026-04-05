@@ -126,12 +126,15 @@ def fetch_ai_stock_news(
     try:
         raw_news = yf.Ticker(ticker).news
         context_lines = []
-        for n in raw_news[:limit]:
-            title = n.get("title", "")
-            link = n.get("link", "")
-            pub = n.get("publisher", "Unknown")
-            if title and link:
-                context_lines.append(f"Title: {title} | Source: {pub} | URL: {link}")
+        for item in raw_news[:limit]:
+            content = item.get("content", {})
+            if content:
+                title = content.get("title", "")
+                pub = content.get("provider", {}).get("displayName", "Unknown")
+                link = content.get("clickThroughUrl", {}).get("url", "")
+                if title and link:
+                    context_lines.append(f"Title: {title} | Source: {pub} | URL: {link}")
+
         news_context = "\n".join(context_lines)
     except Exception as e:
         logger.warning(f"Failed to fetch yfinance news context: {e}")
