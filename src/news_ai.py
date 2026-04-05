@@ -74,10 +74,17 @@ def _generate_with_ollama(prompt: str) -> str:
         "options": {"temperature": 0.1},
     }
 
+    headers = {"Content-Type": "application/json"}
+    
+    # Inject Ollama Cloud API Key if present in .env
+    api_key = os.getenv("OLLAMA_API_KEY", "").strip()
+    if api_key:
+        headers["Authorization"] = f"Bearer {api_key}"
+
     request = Request(
         endpoint,
         data=json.dumps(payload).encode("utf-8"),
-        headers={"Content-Type": "application/json"},
+        headers=headers,
         method="POST",
     )
 
