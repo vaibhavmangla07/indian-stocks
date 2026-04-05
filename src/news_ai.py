@@ -88,7 +88,12 @@ def _generate_with_ollama(prompt: str) -> str:
         method="POST",
     )
 
-    with urlopen(request, timeout=120) as response:
+    import ssl
+    ctx = ssl.create_default_context()
+    ctx.check_hostname = False
+    ctx.verify_mode = ssl.CERT_NONE
+
+    with urlopen(request, context=ctx, timeout=120) as response:
         body = response.read().decode("utf-8")
     parsed = json.loads(body)
     return str(parsed.get("response", "")).strip()
