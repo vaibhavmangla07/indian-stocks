@@ -62,9 +62,14 @@ def render_stock_news():
         separator = "|---|------|----------|----------------|--------|"
         rows = [header, separator]
 
+        import urllib.parse
         for i, item in enumerate(news_items, 1):
             title = item.get("title", "Untitled").replace("|", "\\|")
-            url = item.get("url", "")
+            
+            # Since pure local LLMs hallucinate URLs, force the link to be a Google search of the headline instead.
+            search_query = urllib.parse.quote(f"{stock_display} {title}")
+            url = f"https://www.google.com/search?q={search_query}"
+
             date = item.get("published_at", "N/A")
             why = item.get("why_it_matters", "—").replace("|", "\\|") or "—"
             source = item.get("source", "Unknown").replace("|", "\\|")
