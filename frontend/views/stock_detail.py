@@ -1,5 +1,5 @@
 import streamlit as st
-from src.data_manager import fetch_stock_fundamentals, POPULAR_STOCKS
+from src.data_manager import fetch_stock_fundamentals, POPULAR_STOCKS, _format_indian_number
 
 def _format_decimal(value, digits=2):
     if isinstance(value, (int, float)):
@@ -11,20 +11,6 @@ def _format_percent(value, digits=2):
         return f"{float(value):.{digits}f}%"
     return str(value) if value is not None else "N/A"
 
-def _format_indian_number(value: int) -> str:
-    s = str(int(value))
-    if len(s) <= 3:
-        return s
-
-    last_three = s[-3:]
-    remaining = s[:-3]
-    parts = []
-    while len(remaining) > 2:
-        parts.insert(0, remaining[-2:])
-        remaining = remaining[:-2]
-    if remaining:
-        parts.insert(0, remaining)
-    return ",".join(parts + [last_three])
 
 def _format_market_cap_display(value):
     if isinstance(value, str) and value.endswith("Cr"):

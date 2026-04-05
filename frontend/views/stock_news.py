@@ -4,48 +4,91 @@ from src.data_manager import POPULAR_STOCKS
 from src.news_ai import fetch_ai_stock_news
 
 
+@st.cache_data(ttl=300)
+def _cached_news(stock_query: str):
+    return fetch_ai_stock_news(stock_query, limit=10)
+
+
 def render_stock_news():
-    st.markdown("<h2 style='text-align: center;'>📰 Stock News</h2>", unsafe_allow_html=True)
+    st.markdown("<h2 style='text-align:center'>📰 Stock News Intelligence</h2>", unsafe_allow_html=True)
     st.markdown(
-        "<p style='text-align: center;'>Select a stock to view the top 10 market news items. Simple tags like deal, current affairs, and latest are added for readability.</p>",
+        "<p style='text-align:center;color:#757575'>Select a stock to get AI-curated news with market insights.</p>",
         unsafe_allow_html=True,
     )
 
-    selected_stock = st.selectbox("Select stock", options=[""] + POPULAR_STOCKS, index=0, key="news_select")
-    chosen_stock = selected_stock.strip().upper()
+    _, col, _ = st.columns([1, 2, 1])
+    with col:
+        selected_stock = st.selectbox(
+            "Select Stock",
+            options=[""] + POPULAR_STOCKS,
+            index=0,
+            key="news_select",
+        )
 
-    if chosen_stock:
-        with st.spinner(f"Fetching news for {chosen_stock}..."):
-            normalized_ticker, news_items, ai_summary, used_ai = fetch_ai_stock_news(chosen_stock, limit=10)
+    if not selected_stock:
+        st.info("👉 Select a stock above to load AI news analysis.")
+        return
 
-        if news_items:
-            if used_ai:
-                st.success(f"Showing Ollama top {min(10, len(news_items))} headlines for **{normalized_ticker}**")
-            else:
-                st.warning(f"Showing latest market news for **{normalized_ticker}**")
+    stock = selected_stock.strip().upper()
 
-            if ai_summary:
-                st.info(ai_summary)
+    with st.status("🧠 AI is analyzing stock news...", expanded=True) as status:
+        st.write("📡 Fetching latest headlines from Google News & Yahoo Finance...")
+        ticker, news_items, ai_summary, next_steps, used_ai = _cached_news(stock)
+        if used_ai:
+            st.write("🤖 Running Ollama AI analysis — picking top headlines & market impact...")
+        st.write("✅ Done!")
+        status.update(label="Analysis complete!", state="complete", expanded=False)
 
-            for i, item in enumerate(news_items[:10], start=1):
-                link_text = item["title"].replace("[", "").replace("]", "")
-                item_summary = item.get("summary", "").strip()
-                item_category = item.get("category", "latest").strip().replace("_", " ").title()
-                metadata_line = f"Source: {item['source']} | Published: {item['published_at']}"
-                metadata_line = f"{metadata_line} | Category: {item_category}"
+    if not news_items:
+        st.warning(f"No recent news found for **{stock}**. Try another ticker.")
+        return
 
-                if item["url"]:
-                    st.markdown(f"**{i}. [{link_text}]({item['url']})**")
-                else:
-                    st.markdown(f"**{i}. {link_text}**")
+    stock_display = ticker.replace(".NS", "").replace(".BO", "")
 
-                if item_summary:
-                    st.write(item_summary)
+    st.markdown("---")
+    st.markdown(f"## 📊 Top {len(news_items)} Latest News — **{stock_display}**")
 
-                st.caption(metadata_line)
+    if ai_summary:
+        st.info(f"**AI Overview:** {ai_summary}")
 
-            st.info("For education only, not financial advice.")
-        else:
-            st.warning(f"No recent news found for **{chosen_stock}**. Try another ticker.")
+    st.markdown("")
+
+    if used_ai:
+        header = "| # | Date | Headline | Why it matters | Source |"
+        separator = "|---|------|----------|----------------|--------|"
+        rows = [header, separator]
+
+        for i, item in enumerate(news_items, 1):
+            title = item.get("title", "Untitled").replace("|", "\\|")
+            url = item.get("url", "")
+            date = item.get("published_at", "N/A")
+            why = item.get("why_it_matters", "—").replace("|", "\\|") or "—"
+            source = item.get("source", "Unknown").replace("|", "\\|")
+
+            headline_cell = f"[{title}]({url})" if url else title
+            rows.append(f"| {i} | {date} | {headline_cell} | {why} | {source} |")
+
+        st.markdown("\n".join(rows))
     else:
-        st.info("👉 Please select a stock to view news.")
+        st.markdown("### Latest Headlines")
+        for i, item in enumerate(news_items, 1):
+            title = item.get("title", "Untitled")
+            url = item.get("url", "")
+            source = item.get("source", "Unknown")
+            date = item.get("published_at", "N/A")
+            category = item.get("category", "latest").replace("_", " ").title()
+
+            if url:
+                st.markdown(f"**{i}.** [{title}]({url})")
+            else:
+                st.markdown(f"**{i}.** {title}")
+            st.caption(f"📰 {source} &nbsp;|&nbsp; 🕐 {date} &nbsp;|&nbsp; 🏷 {category}")
+
+    if next_steps:
+        st.markdown("---")
+        st.markdown("### ✅ Investor Next Steps")
+        for i, step in enumerate(next_steps, 1):
+            st.markdown(f"**{i}.** {step}")
+
+    st.markdown("---")
+    st.caption("⚠️ For educational purposes only. Not financial advice.")

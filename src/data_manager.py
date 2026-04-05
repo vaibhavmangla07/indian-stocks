@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 import streamlit as st
 import yfinance as yf
-from src.logger import logging
+from src.logger import logger
 
 from src.config import (
     CACHE_TTL_MARKET_DATA,
@@ -25,7 +25,7 @@ def _to_float(value):
 
 @st.cache_data(ttl=CACHE_TTL_MARKET_DATA)
 def fetch_indices():
-    logging.info("Fetching market indices")
+    logger.info("Fetching market indices")
     indices = {
         "^NSEI": "NIFTY 50",
         "^BSESN": "SENSEX",
@@ -61,7 +61,7 @@ def fetch_indices():
 
 @st.cache_data(ttl=CACHE_TTL_MARKET_DATA)
 def fetch_data(ticker, period):
-    logging.info("Fetching historical data for %s with period %s", ticker, period)
+    logger.info("Fetching historical data for %s with period %s", ticker, period)
     try:
         df = yf.Ticker(ticker).history(period=period)
         if df.empty:
@@ -75,12 +75,12 @@ def fetch_data(ticker, period):
             df = df[df["Volume"] > 0]
         return df
     except Exception:
-        logging.warning("Failed to fetch data for %s", ticker)
+        logger.warning("Failed to fetch data for %s", ticker)
         return None
 
 
 def predict_horizons(df):
-    logging.info("Running horizon prediction on dataframe with %s rows", len(df))
+    logger.info("Running horizon prediction on dataframe with %s rows", len(df))
     if len(df) < ML_MIN_DATA_POINTS:
         return None, None
 
@@ -114,7 +114,7 @@ def predict_horizons(df):
 
         return current_price * (1 + short_return), current_price * (1 + long_return)
     except Exception:
-        logging.warning("Prediction failed for horizon models")
+        logger.warning("Prediction failed for horizon models")
         return None, None
 
 
@@ -151,8 +151,7 @@ def _format_market_cap_cr(market_cap: float):
 
 @st.cache_data(ttl=CACHE_TTL_FUNDAMENTALS)
 def fetch_stock_fundamentals(ticker):
-    """Fetch stock fundamentals for Stock Detail page."""
-    logging.info("Fetching fundamentals for %s", ticker)
+    logger.info("Fetching fundamentals for %s", ticker)
     try:
         stock = yf.Ticker(ticker)
         info = stock.info or {}
@@ -249,5 +248,5 @@ def fetch_stock_fundamentals(ticker):
             "company_name": company_name or ticker,
         }
     except Exception:
-        logging.warning("Failed to fetch fundamentals for %s", ticker)
+        logger.warning("Failed to fetch fundamentals for %s", ticker)
         return None

@@ -57,19 +57,33 @@ def render_home():
 
             current_price = df["Close"].iloc[-1]
             mean_price = df["Close"].mean()
-            max_price = df["Close"].max()
-            min_price = df["Close"].min()
+            # Use actual traded range for period high/low instead of closing-only values.
+            max_price = df["High"].max() if "High" in df.columns else df["Close"].max()
+            min_price = df["Low"].min() if "Low" in df.columns else df["Close"].min()
             volatility = df["Close"].std()
+            period_label = period.upper()
 
             tab1, tab2, tab3 = st.tabs(["📋 Quick Overview", "📈 Price Action & Volume", "🤖 ML Forecast"])
 
             with tab1:
                 col1, col2, col3, col4, col5 = st.columns(5)
                 col1.metric("Current Price", f"₹{current_price:,.2f}")
-                col2.metric("Average Price", f"₹{mean_price:,.2f}")
-                col3.metric("Max Price", f"₹{max_price:,.2f}")
-                col4.metric("Low Price", f"₹{min_price:,.2f}")
-                col5.metric("Volatility Index", f"₹{volatility:,.2f}")
+                col2.metric(
+                    f"{period_label} High",
+                    f"₹{max_price:,.2f}",
+                    f"₹{max_price - current_price:+,.0f} ({(max_price/current_price - 1)*100:.1f}%) from now",
+                )
+                col3.metric(
+                    f"{period_label} Low",
+                    f"₹{min_price:,.2f}",
+                    f"₹{min_price - current_price:+,.0f} ({(min_price/current_price - 1)*100:.1f}%) from now",
+                )
+                col4.metric(
+                    f"{period_label} Avg",
+                    f"₹{mean_price:,.2f}",
+                    f"₹{mean_price - current_price:+,.0f} ({(mean_price/current_price - 1)*100:.1f}%) from now",
+                )
+                col5.metric("Volatility (Std)", f"₹{volatility:,.2f}")
 
                 with st.expander("Show Raw Dataset"):
                     raw_df = df.sort_values(by="Date", ascending=False).head(50)
