@@ -45,7 +45,13 @@ st.markdown(
 st.markdown('<p class="main-header">📈 Stocksy</p>', unsafe_allow_html=True)
 st.markdown('<p class="sub-header">Advanced Market Analysis & Machine Learning Predictions</p>', unsafe_allow_html=True)
 
-menu = st.radio("", ["Home", "Stock News", "Stock Detail", "About", "Contact Us"], horizontal=True, index=0)
+menu = st.radio(
+    "Main navigation",
+    ["Home", "Stock News", "Stock Detail", "About", "Contact Us"],
+    horizontal=True,
+    index=0,
+    label_visibility="collapsed",
+)
 st.divider()
 logging.info("User opened menu tab: %s", menu)
 

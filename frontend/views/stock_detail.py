@@ -1,18 +1,15 @@
 import streamlit as st
-from backend.data_manager import fetch_stock_fundamentals, POPULAR_STOCKS
-
+from src.data_manager import fetch_stock_fundamentals, POPULAR_STOCKS
 
 def _format_decimal(value, digits=2):
     if isinstance(value, (int, float)):
         return f"{float(value):,.{digits}f}"
     return str(value) if value is not None else "N/A"
 
-
 def _format_percent(value, digits=2):
     if isinstance(value, (int, float)):
         return f"{float(value):.{digits}f}%"
     return str(value) if value is not None else "N/A"
-
 
 def _format_indian_number(value: int) -> str:
     s = str(int(value))
@@ -29,7 +26,6 @@ def _format_indian_number(value: int) -> str:
         parts.insert(0, remaining)
     return ",".join(parts + [last_three])
 
-
 def _format_market_cap_display(value):
     if isinstance(value, str) and value.endswith("Cr"):
         return value
@@ -38,7 +34,6 @@ def _format_market_cap_display(value):
         if cr > 0:
             return f"{_format_indian_number(cr)}Cr"
     return str(value) if value is not None else "N/A"
-
 
 def render_stock_detail():
     st.markdown("<h2 style='text-align: center;'>🏢 Stock Detail</h2>", unsafe_allow_html=True)

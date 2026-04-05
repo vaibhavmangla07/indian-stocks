@@ -1,5 +1,6 @@
 import streamlit as st
-from backend.data_manager import fetch_indices, fetch_data, predict_horizons, POPULAR_STOCKS
+
+from src.data_manager import fetch_indices, fetch_data, predict_horizons, POPULAR_STOCKS
 
 def render_home():
     st.markdown("<h3 style='text-align: center;'>📊 Market Overview</h3>", unsafe_allow_html=True)
@@ -60,7 +61,7 @@ def render_home():
             min_price = df["Close"].min()
             volatility = df["Close"].std()
 
-            tab1, tab2, tab3 = st.tabs(["📋 Quick Overview", "📈 Price Action & Volume", "🤖 AI Forecast"])
+            tab1, tab2, tab3 = st.tabs(["📋 Quick Overview", "📈 Price Action & Volume", "🤖 ML Forecast"])
 
             with tab1:
                 col1, col2, col3, col4, col5 = st.columns(5)
@@ -71,15 +72,17 @@ def render_home():
                 col5.metric("Volatility Index", f"₹{volatility:,.2f}")
 
                 with st.expander("Show Raw Dataset"):
-                    st.dataframe(df.sort_values(by="Date", ascending=False).head(50), use_container_width=True)
+                    raw_df = df.sort_values(by="Date", ascending=False).head(50)
+                    raw_df = raw_df.drop(columns=[col for col in ["Dividends", "Stock Splits"] if col in raw_df.columns])
+                    st.dataframe(raw_df, width="stretch")
 
             with tab2:
                 chart_data = df.set_index("Date")[["Close"]]
-                st.line_chart(chart_data, use_container_width=True, color="#1E88E5")
+                st.line_chart(chart_data, width="stretch", color="#1E88E5")
 
                 if "Volume" in df.columns:
                     vol_data = df.set_index("Date")[["Volume"]]
-                    st.bar_chart(vol_data, use_container_width=True, color="#FFA726")
+                    st.bar_chart(vol_data, width="stretch", color="#FFA726")
 
             with tab3:
                 pred_short, pred_long = predict_horizons(df)

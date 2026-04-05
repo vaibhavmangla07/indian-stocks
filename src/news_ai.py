@@ -120,15 +120,6 @@ def _fetch_google_news(stock_query: str, limit: int = 10) -> List[Dict[str, str]
     return items
 
 
-def _get_category(title: str) -> str:
-    text = title.lower()
-    if any(word in text for word in ["deal", "order", "orderbook", "contract", "win", "stake"]):
-        return "deal"
-    if any(word in text for word in ["policy", "court", "government", "cpi", "rbi", "budget", "results"]):
-        return "current_affairs"
-    return "latest"
-
-
 def fetch_stock_news(stock_query: str, limit: int = 10) -> Tuple[str, List[Dict[str, str]]]:
     """Fetch stock news from Google News first, then yfinance as fallback."""
     logging.info("Fetching stock news for %s with limit %s", stock_query, limit)
@@ -167,14 +158,12 @@ def _parse_json_payload(text: str) -> Dict:
     """Parse JSON from model output even when extra text is present."""
     cleaned = _clean_json_text(text)
 
-    # 1) Fast path: strict JSON
     try:
         parsed = json.loads(cleaned)
         return parsed if isinstance(parsed, dict) else {}
     except Exception:
         pass
 
-    # 2) Parse the first valid JSON object from the string
     try:
         decoder = json.JSONDecoder()
         obj, _ = decoder.raw_decode(cleaned)
@@ -182,7 +171,6 @@ def _parse_json_payload(text: str) -> Dict:
     except Exception:
         pass
 
-    # 3) Fallback: parse substring between first "{" and last "}"
     start = cleaned.find("{")
     end = cleaned.rfind("}")
     if start != -1 and end != -1 and end > start:
@@ -265,10 +253,38 @@ def fetch_ai_stock_news(
                 }
             )
 
-        if items:
-            return ticker, items[:limit], summary, True
-    except Exception as error:
-        logging.warning("Ollama news generation failed for %s: %s; using fallback headlines", stock_query, error)
+        if not items:
+            items = [
+                {
+                    **news_item,
+                    "summary": "",
+                    "category": _get_category(news_item.get("title", "")),
+                }
+                for news_item in raw_news[:limit]
+            ]
 
-    return ticker, raw_news[:limit], "Showing the latest market news.", False
+        if not summary:
+            summary = f"Latest market headlines for {ticker or stock_query}."
 
+        return ticker, items[:limit], summary, True
+
+    except Exception as exc:
+        logging.warning("Ollama news generation failed for %s: %s; using fallback headlines", stock_query, exc)
+        fallback_items = [
+            {
+                **news_item,
+                "summary": "",
+                "category": _get_category(news_item.get("title", "")),
+            }
+            for news_item in raw_news[:limit]
+        ]
+        return ticker, fallback_items, f"Latest market news for {ticker or stock_query}.", False
+
+
+def _get_category(title: str) -> str:
+    text = title.lower()
+    if any(word in text for word in ["deal", "order", "orderbook", "contract", "win", "stake"]):
+        return "deal"
+    if any(word in text for word in ["policy", "court", "government", "cpi", "rbi", "budget", "results"]):
+        return "current_affairs"
+    return "latest"

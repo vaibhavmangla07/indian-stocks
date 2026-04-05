@@ -3,4 +3,18 @@ source .venv/bin/activate
 pip install -r requirements.txt
 
 
-streamlit run frontend/app.py --server.port=8502
+streamlit run frontend/app.py --server.port=8501
+
+
+### Docker commands
+
+# Build the Docker image
+docker build -t stocksy:latest .
+
+# Run the container on port 8501
+# On macOS, host.docker.internal lets the container reach Ollama running on your host machine.
+docker run --rm -p 8501:8501 \
+  --env-file .env \
+  -e OLLAMA_BASE_URL=http://host.docker.internal:11434 \
+  -e OLLAMA_MODEL=gemma3:270m \
+  stocksy:latest

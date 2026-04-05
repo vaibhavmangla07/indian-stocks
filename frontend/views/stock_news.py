@@ -1,7 +1,7 @@
 import streamlit as st
 
-from backend.data_manager import POPULAR_STOCKS
-from backend.news_ai import fetch_ai_stock_news
+from src.data_manager import POPULAR_STOCKS
+from src.news_ai import fetch_ai_stock_news
 
 
 def render_stock_news():

@@ -8,10 +8,9 @@ APP_DESCRIPTION = "Advanced Market Analysis & Machine Learning Predictions for I
 
 # Paths
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DATA_DIR = os.path.join(PROJECT_ROOT, "data")
 LOGS_DIR = os.path.join(PROJECT_ROOT, "logs")
 MESSAGES_DIR = os.path.join(PROJECT_ROOT, "messages")
-MODELS_DIR = os.path.join(PROJECT_ROOT, "notebook")
+MODELS_DIR = os.path.join(PROJECT_ROOT, "model")
 
 # Model Paths
 SHORT_TERM_MODEL_PATH = os.path.join(MODELS_DIR, "model_short_term.pkl")

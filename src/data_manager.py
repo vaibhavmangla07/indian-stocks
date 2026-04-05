@@ -15,11 +15,13 @@ from src.config import (
     SHORT_TERM_MODEL_PATH,
 )
 
+
 def _to_float(value):
     try:
         return float(value)
     except Exception:
         return None
+
 
 @st.cache_data(ttl=CACHE_TTL_MARKET_DATA)
 def fetch_indices():
@@ -56,6 +58,7 @@ def fetch_indices():
 
     return data
 
+
 @st.cache_data(ttl=CACHE_TTL_MARKET_DATA)
 def fetch_data(ticker, period):
     logging.info("Fetching historical data for %s with period %s", ticker, period)
@@ -74,6 +77,7 @@ def fetch_data(ticker, period):
     except Exception:
         logging.warning("Failed to fetch data for %s", ticker)
         return None
+
 
 def predict_horizons(df):
     logging.info("Running horizon prediction on dataframe with %s rows", len(df))
@@ -247,5 +251,3 @@ def fetch_stock_fundamentals(ticker):
     except Exception:
         logging.warning("Failed to fetch fundamentals for %s", ticker)
         return None
-
-
