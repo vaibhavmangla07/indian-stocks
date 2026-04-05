@@ -34,15 +34,22 @@ env/
 .DS_Store
 
 # Data files
-data/*.csv
+data/*
+!data/data.txt
 *.csv
 
 # Flask
 instance/
 .webassets-cache
 
+# Logs
+logs/*
+!logs/logs.txt
+*.log
+
 # Environment
 .env
+!.env.example
 .env.local
 
 # Node modules (if using any frontend tools)
@@ -57,3 +64,6 @@ Thumbs.db
 # Cache
 .cache/
 .pytest_cache/
+
+# Private notes
+private/

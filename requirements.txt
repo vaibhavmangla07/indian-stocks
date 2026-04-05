@@ -3,9 +3,11 @@ yfinance
 pandas
 numpy
 scikit-learn
+xgboost
 joblib
 notebook
 matplotlib
 seaborn
 plotly
+python-dotenv
 -e .

@@ -1,26 +1,10 @@
-"""
-Data utilities and helper functions for Stocksy application.
-Provides data validation, cleaning, and transformation operations.
-"""
-
 import pandas as pd
 import numpy as np
 from typing import Tuple, Optional, List
 
 from src.logger import logger
 
-
 def clean_price_data(df: pd.DataFrame, min_volume: int = 0) -> Optional[pd.DataFrame]:
-    """
-    Clean price data by removing invalid entries.
-    
-    Args:
-        df: DataFrame with OHLCV data
-        min_volume: Minimum volume threshold (exclude days with lower volume)
-        
-    Returns:
-        Cleaned DataFrame or None if invalid
-    """
     try:
         if df is None or df.empty:
             logger.warning("Data is empty or None")
@@ -48,15 +32,6 @@ def clean_price_data(df: pd.DataFrame, min_volume: int = 0) -> Optional[pd.DataF
 
 
 def calculate_technical_indicators(df: pd.DataFrame) -> pd.DataFrame:
-    """
-    Calculate technical indicators for ML model prediction.
-    
-    Args:
-        df: DataFrame with Close prices
-        
-    Returns:
-        DataFrame with calculated indicators
-    """
     try:
         if df is None or len(df) < 61:
             logger.warning("Insufficient data for technical indicators calculation")
@@ -79,16 +54,6 @@ def calculate_technical_indicators(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def validate_stock_data(df: pd.DataFrame, required_columns: List[str] = None) -> bool:
-    """
-    Validate stock data DataFrame.
-    
-    Args:
-        df: DataFrame to validate
-        required_columns: List of required columns (default: ["Date", "Close", "Volume"])
-        
-    Returns:
-        True if valid, False otherwise
-    """
     if required_columns is None:
         required_columns = ["Date", "Close", "Volume"]
     
@@ -109,15 +74,6 @@ def validate_stock_data(df: pd.DataFrame, required_columns: List[str] = None) ->
 
 
 def get_price_statistics(df: pd.DataFrame) -> dict:
-    """
-    Calculate price statistics from stock data.
-    
-    Args:
-        df: DataFrame with Close prices
-        
-    Returns:
-        Dictionary with price statistics
-    """
     try:
         if df is None or df.empty or "Close" not in df.columns:
             return {}
@@ -139,15 +95,6 @@ def get_price_statistics(df: pd.DataFrame) -> dict:
 
 
 def get_one_year_return(df: pd.DataFrame) -> Optional[float]:
-    """
-    Calculate one-year return percentage.
-    
-    Args:
-        df: DataFrame with historical Close prices
-        
-    Returns:
-        One-year return percentage or None
-    """
     try:
         if df is None or len(df) < 2 or "Close" not in df.columns:
             return None
