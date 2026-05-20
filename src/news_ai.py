@@ -111,6 +111,7 @@ def _get_category(title: str) -> str:
 def fetch_ai_stock_news(
     stock_query: str,
     limit: int = 10,
+    candidate_limit: int = 30
 ) -> Tuple[str, List[Dict[str, str]], str, List[str], bool]:
     ticker = _normalize_ticker(stock_query)
     stock_name = stock_query.strip().upper().replace(".NS", "").replace(".BO", "")
@@ -126,7 +127,7 @@ def fetch_ai_stock_news(
     try:
         raw_news = yf.Ticker(ticker).news
         context_lines = []
-        for item in raw_news[:limit]:
+        for item in raw_news[:candidate_limit]:
             content = item.get("content", {})
             if content:
                 title = content.get("title") or ""

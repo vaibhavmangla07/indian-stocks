@@ -21,7 +21,7 @@ st.markdown(
     """
 <style>
     .main-header {
-        font-size: 2.8rem;
+        font-size: 5.6rem;
         font-weight: 800;
         color: #1E88E5;
         text-align: center;
@@ -42,8 +42,8 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-st.markdown('<p class="main-header">📈 Stocksy</p>', unsafe_allow_html=True)
-st.markdown('<p class="sub-header">Advanced Market Analysis & Machine Learning Predictions</p>', unsafe_allow_html=True)
+st.markdown('<div style="font-size: 3rem; font-weight: 800; text-align: center; margin-bottom: 0px; line-height: 1.2;">📈 <span style="background: linear-gradient(to right, #FF3333, #1E88E5); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Stocksy</span> 📉</div>', unsafe_allow_html=True)
+st.markdown('<div style="font-size: 0.8rem; color: #757575; text-align: center; margin-bottom: 20px;">Advanced Market Analysis & Machine Learning Predictions</div>', unsafe_allow_html=True)
 
 menu = st.radio(
     "Main navigation",
